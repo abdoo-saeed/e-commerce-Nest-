@@ -14,7 +14,7 @@ export interface IUser {
   DOB?: Date;
   deletedAt?: Date;
   restoredAt?: Date;
-  confirmEmail?: Date;
+  confirmEmail: boolean;
   changeCredentialsTime?: Date;
 
   gender: GenderEnum;

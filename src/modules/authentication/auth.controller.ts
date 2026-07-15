@@ -1,6 +1,7 @@
-import { Body, Controller, Post, UsePipes, ValidationPipe } from "@nestjs/common"
+import { Body, Controller, Patch, Post, UsePipes, ValidationPipe } from "@nestjs/common"
 import { AuthService } from "./auth.service"
-import { LoginDto, SignUpDto } from "./dto/auth.dto"
+import { confirmDTO, LoginDto, SignUpDto } from "./dto/auth.dto"
+
 
 
 
@@ -23,25 +24,21 @@ export class AuthController {
   async signUp(
     @Body() body: SignUpDto) {
 
-    const user = await this.authService.signup(body)
+    const user = await this.authService.signUp(body)
+
+
     return {message:"Done", data: {user}  }
   } 
 
 
+  @Patch("confirm-email")  
+  async confirmEmail(
+    @Body() body: confirmDTO) {
 
-  @Post("login")  
-  async login(
-    @Body(
-      new ValidationPipe({
-        stopAtFirstError:true,
-        whitelist:true,
-        forbidNonWhitelisted:true
-       })
-  ) body: LoginDto) {
+    await this.authService.confirmEmail(body)
+    return {message:"Done"}
+  } 
 
-    const user =  this.authService.login(body)
-    return {message:"Done", user }
-  }
 
 
 
