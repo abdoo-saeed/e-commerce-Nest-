@@ -41,6 +41,16 @@ export class AuthController {
 
 
 
+  @Post("login")  
+  async login(
+    @Body() body: LoginDto) {
+
+    const cred = await this.authService.login(body)
+    return {message:"Done", data:cred}
+  } 
+
+
+
 
 
 }

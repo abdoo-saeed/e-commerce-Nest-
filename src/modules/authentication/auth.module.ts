@@ -7,6 +7,8 @@ import { userModel } from 'src/model';
 import { UserRepo } from 'src/common/repo';
 import { CacheService } from 'src/common/services/cache.service';
 import { SecurityService } from 'src/common/services/security';
+import { JwtService } from '@nestjs/jwt';
+import { TokenService } from 'src/common/services';
 
 
 @Module({
@@ -38,7 +40,9 @@ import { SecurityService } from 'src/common/services/security';
     AuthService,
     UserRepo,
     CacheService,
-    SecurityService
+    SecurityService,
+    JwtService,
+    TokenService
 
   ],
   exports: ['Client Redis', ],

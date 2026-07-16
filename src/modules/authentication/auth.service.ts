@@ -7,6 +7,9 @@ import { createOtp } from "src/common/utils";
 import { SecurityService } from './../../common/services/security';
 import { ConfigService } from '@nestjs/config';
 import { emailEvent } from "src/common/services/email";
+import { randomUUID } from "node:crypto";
+import { JwtService } from "@nestjs/jwt";
+import { TokenService } from "src/common/services";
 
 
 
@@ -18,6 +21,8 @@ export class AuthService {
   private OTP_MAX_ATTEMPTS = 5
   constructor(
     private readonly redis: CacheService,
+    private readonly tokenService: TokenService,
+    private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly securityService:SecurityService,
     private readonly userRepo: UserRepo,
@@ -89,7 +94,7 @@ async signUp(body:SignUpDto){
         }
     }
 
-////////
+/////////////////////////////
 
 async confirmEmail({email,otp}:confirmDTO){
 
@@ -136,6 +141,73 @@ async confirmEmail({email,otp}:confirmDTO){
   return{
     data:"confirmation done"
   } 
+
+}
+
+//////////////////////////////
+
+
+async login({email,password,}:LoginDto){
+
+  const user = await this.userRepo.findByEmail(email)
+
+  if(!user || !await this.securityService.compare({plainText:password,cipherText:user.password})){
+    throw new BadRequestException("in-valid credintials")
+  }
+  if(!user.confirmEmail){
+    throw new BadRequestException("email not confirmed yet")
+  }
+
+
+  const jti = randomUUID()
+  const accessToken = await this.tokenService.createToken({
+  payload: {
+    _id: user._id,
+    email: user.email,
+  },
+  secret: process.env.ACCESS_SIGNATURE as string,
+  options: {
+    expiresIn: "7d",
+    jwtid: jti,
+  },
+});
+
+  const refreshToken = await this.tokenService.createToken({
+  payload: {
+    _id: user._id,
+    email: user.email,
+  },
+  secret: process.env.REFRESH_SIGNATURE as string,
+  options: {
+    expiresIn: "7d",
+    jwtid: jti,
+  },
+});
+
+  // if(FCM){
+
+  //   await addFCM(user._id,FCM)
+  //   const tokens = await getFCMs(user._id)
+
+  //   if(tokens?.length){
+
+  //     await notify.sendNotifications({tokens,data:{title:"login",body:`you login at  ${new Date()}`}})
+
+  //   }
+
+    
+
+  // }
+
+  return {
+    data:{
+      accessToken,
+      refreshToken
+    }
+  }
+
+  
+
 
 }
 
