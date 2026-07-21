@@ -17,7 +17,7 @@ service: "gmail",
 
 
    await transporter.sendMail({
-    from: `"Saraha App" <${process.env.EMAIL}>`,
+    from: `"E_COMMERCE" <${process.env.EMAIL}>`,
     to,
     subject,
     html

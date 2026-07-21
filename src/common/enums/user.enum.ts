@@ -15,3 +15,8 @@ export enum GenderEnum {
   MALE ,
   FEMALE 
 }
+
+export enum TokenType {
+  ACCESS = "ACCESS",
+  REFRESH = "REFRESH",
+}

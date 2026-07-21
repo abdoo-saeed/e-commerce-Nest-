@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotAcceptableException } from "@nestjs/common";
-import { confirmDTO, LoginDto, SignUpDto } from "./dto/auth.dto";
+import { confirmDTO, LoginDto, ResendOtpDto, SignUpDto } from "./dto/auth.dto";
 import { IUser } from "src/common/interfaces";
 import { UserRepo } from "src/common/repo";
 import { CacheService } from "src/common/services/cache.service";
@@ -147,7 +147,7 @@ async confirmEmail({email,otp}:confirmDTO){
 //////////////////////////////
 
 
-async login({email,password,}:LoginDto){
+async login({email,password}:LoginDto){
 
   const user = await this.userRepo.findByEmail(email)
 
@@ -211,6 +211,58 @@ async login({email,password,}:LoginDto){
 
 }
 
+
+////////////////////////////
+
+async resendOtp({email}:ResendOtpDto){
+
+     const user = await this.userRepo.findByEmail(email)
+
+    if(!user){
+      throw new BadRequestException({message:"user not found",status:404})
+    }
+    if(user.confirmEmail){
+      throw new BadRequestException({message:"user already confirmed",status:404})
+    }
+
+        const otpKey = this.redis.confirmEmailKeyPrefix(user._id) 
+        const otpData =await this.redis.get(otpKey)
+
+     if(otpData){
+       const ttl =await this.redis.getTTL(otpKey)
+       if(ttl > 240){
+       throw new BadRequestException({message:"wait minute to resend",status:404})
+       }
+    }
+
+    //=== resend the otp 
+    await this.redis.deleteByKey(otpKey)
+
+       const code = createOtp()
+
+       await this.redis.set({
+        key:otpKey,
+        value:{
+            otp: await this.securityService.hash({plainText:code.toString(),salt:process.env.SALT as unknown as number}),
+            attempts:1,
+        },
+        ttl: 300  // 5 minutes
+    })
+
+
+     //send otp by eventEmitter
+     emailEvent.publish("confirm-email",{to:email ,title:"E_COMMERCE_APP",otpKey,subject:"Confirm Email",expiredTime:this.OTP_TTL})
+    
+    return {
+        data:{
+            message:"success",
+            data:{}
+        }
+    }
+
+
+
+}
 
 
 

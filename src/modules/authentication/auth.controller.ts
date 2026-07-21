@@ -1,6 +1,7 @@
-import { Body, Controller, Patch, Post, UsePipes, ValidationPipe } from "@nestjs/common"
+import { Body, Controller, HttpCode, HttpStatus, Patch, Post, Req, UsePipes, ValidationPipe } from "@nestjs/common"
 import { AuthService } from "./auth.service"
-import { confirmDTO, LoginDto, SignUpDto } from "./dto/auth.dto"
+import { confirmDTO, LoginDto, ResendOtpDto, SignUpDto } from "./dto/auth.dto"
+import type{ Request } from "express"
 
 
 
@@ -43,12 +44,18 @@ export class AuthController {
 
   @Post("login")  
   async login(
+    @Req() req:Request,
     @Body() body: LoginDto) {
-
     const cred = await this.authService.login(body)
     return {message:"Done", data:cred}
   } 
 
+
+  @Post('resend-otp')
+  @HttpCode(HttpStatus.OK)
+  async resendOtp(@Body() body: ResendOtpDto) {
+    return this.authService.resendOtp(body);
+  }
 
 
 

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { createClient } from 'redis';
 import { AuthController } from './auth.controller';
@@ -9,6 +9,7 @@ import { CacheService } from 'src/common/services/cache.service';
 import { SecurityService } from 'src/common/services/security';
 import { JwtService } from '@nestjs/jwt';
 import { TokenService } from 'src/common/services';
+
 
 
 @Module({
@@ -45,6 +46,14 @@ import { TokenService } from 'src/common/services';
     TokenService
 
   ],
-  exports: ['Client Redis', ],
+  exports: ['Client Redis',
+    AuthService,
+    UserRepo,
+    CacheService,
+    SecurityService,
+    JwtService,
+    TokenService ],
 })
-export class AuthModule {}
+export class AuthModule {
+
+}
